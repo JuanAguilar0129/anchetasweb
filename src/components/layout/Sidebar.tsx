@@ -40,7 +40,7 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
         <div className="mb-4 px-2">
           <div className="text-sm text-gray-500">Hola,</div>
           <div className="font-semibold">{profile?.nombre}</div>
-          <div className="text-xs text-gray-400">{profile?.email}</div>
+<div className="text-xs text-gray-400">{profile?.codigo_usuario}</div>
         </div>
 
         <nav className="space-y-2">
