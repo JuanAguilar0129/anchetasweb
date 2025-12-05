@@ -1,6 +1,29 @@
 import { useEffect, useState } from 'react';
-import { Plus, User, MapPin, Trash2, X, Edit2 } from 'lucide-react';
+import { Plus, User, MapPin, Trash2, X, Edit2, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+
+interface UserPermissions {
+  ventanas: {
+    dashboard: boolean;
+    ventas: boolean;
+    inventario: boolean;
+    compras: boolean;
+    reportes: boolean;
+    productos: boolean;
+    traslados: boolean;
+    puntos: boolean;
+    usuarios: boolean;
+  };
+  dashboard: {
+    ver_ventas_hoy: boolean;
+    ver_ventas_mes: boolean;
+    ver_ganancia_mes: boolean;
+    ver_stock_bajo: boolean;
+    ver_productos_vendidos: boolean;
+    ver_producto_mas_vendido: boolean;
+    ver_grafico_ventas: boolean;
+  };
+}
 
 interface Profile {
   id: string;
@@ -10,6 +33,7 @@ interface Profile {
   activo: boolean;
   created_at: string;
   updated_at: string;
+  permisos?: UserPermissions;
 }
 
 interface PuntoVenta {
@@ -25,18 +49,94 @@ interface UserWithPuntos extends Profile {
   puntos: PuntoVenta[];
 }
 
+// Permisos por defecto según el rol
+const getDefaultPermissions = (rol: string): UserPermissions => {
+  if (rol === 'admin_general') {
+    return {
+      ventanas: {
+        dashboard: true,
+        ventas: true,
+        inventario: true,
+        compras: true,
+        reportes: true,
+        productos: true,
+        traslados: true,
+        puntos: true,
+        usuarios: true,
+      },
+      dashboard: {
+        ver_ventas_hoy: true,
+        ver_ventas_mes: true,
+        ver_ganancia_mes: true,
+        ver_stock_bajo: true,
+        ver_productos_vendidos: true,
+        ver_producto_mas_vendido: true,
+        ver_grafico_ventas: true,
+      }
+    };
+  } else if (rol === 'admin_punto') {
+    return {
+      ventanas: {
+        dashboard: true,
+        ventas: true,
+        inventario: true,
+        compras: true,
+        reportes: true,
+        productos: true,
+        traslados: true,
+        puntos: false,
+        usuarios: false,
+      },
+      dashboard: {
+        ver_ventas_hoy: true,
+        ver_ventas_mes: true,
+        ver_ganancia_mes: true,
+        ver_stock_bajo: true,
+        ver_productos_vendidos: true,
+        ver_producto_mas_vendido: true,
+        ver_grafico_ventas: true,
+      }
+    };
+  } else { // vendedor
+    return {
+      ventanas: {
+        dashboard: true,
+        ventas: true,
+        inventario: true,
+        compras: false,
+        reportes: false,
+        productos: false,
+        traslados: false,
+        puntos: false,
+        usuarios: false,
+      },
+      dashboard: {
+        ver_ventas_hoy: true,
+        ver_ventas_mes: true,
+        ver_ganancia_mes: false,
+        ver_stock_bajo: true,
+        ver_productos_vendidos: true,
+        ver_producto_mas_vendido: true,
+        ver_grafico_ventas: true,
+      }
+    };
+  }
+};
+
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState<UserWithPuntos[]>([]);
   const [puntos, setPuntos] = useState<PuntoVenta[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserWithPuntos | null>(null);
+  const [showPermisosSection, setShowPermisosSection] = useState(false);
   const [formData, setFormData] = useState({
     nombre: '',
     codigo_usuario: '',
     password: '',
     rol: 'vendedor' as 'admin_general' | 'admin_punto' | 'vendedor',
-    puntosSeleccionados: [] as string[]
+    puntosSeleccionados: [] as string[],
+    permisos: getDefaultPermissions('vendedor')
   });
 
   useEffect(() => {
@@ -88,14 +188,50 @@ export default function Usuarios() {
 
   const handleEdit = (usuario: UserWithPuntos) => {
     setEditingUser(usuario);
+    const permisos = usuario.permisos || getDefaultPermissions(usuario.rol);
     setFormData({
       nombre: usuario.nombre,
       codigo_usuario: usuario.codigo_usuario,
       password: '',
       rol: usuario.rol,
-      puntosSeleccionados: usuario.puntos.map(p => p.id)
+      puntosSeleccionados: usuario.puntos.map(p => p.id),
+      permisos
     });
     setShowModal(true);
+  };
+
+  const handleRolChange = (newRol: 'admin_general' | 'admin_punto' | 'vendedor') => {
+    setFormData({
+      ...formData,
+      rol: newRol,
+      permisos: getDefaultPermissions(newRol)
+    });
+  };
+
+  const toggleVentanaPermiso = (ventana: keyof UserPermissions['ventanas']) => {
+    setFormData({
+      ...formData,
+      permisos: {
+        ...formData.permisos,
+        ventanas: {
+          ...formData.permisos.ventanas,
+          [ventana]: !formData.permisos.ventanas[ventana]
+        }
+      }
+    });
+  };
+
+  const toggleDashboardPermiso = (elemento: keyof UserPermissions['dashboard']) => {
+    setFormData({
+      ...formData,
+      permisos: {
+        ...formData.permisos,
+        dashboard: {
+          ...formData.permisos.dashboard,
+          [elemento]: !formData.permisos.dashboard[elemento]
+        }
+      }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -103,15 +239,14 @@ export default function Usuarios() {
 
     try {
       if (editingUser) {
-        // Actualizar usuario existente
         const updateData: any = {
           nombre: formData.nombre,
           codigo_usuario: formData.codigo_usuario,
           rol: formData.rol,
-          activo: true
+          activo: true,
+          permisos: formData.permisos
         };
 
-        // Solo actualizar password si se proporcionó uno nuevo
         if (formData.password) {
           updateData.password = formData.password;
         }
@@ -123,13 +258,11 @@ export default function Usuarios() {
 
         if (updateError) throw updateError;
 
-        // Eliminar puntos antiguos
         await (supabase as any)
           .from('usuarios_puntos')
           .delete()
           .eq('user_id', editingUser.id);
 
-        // Agregar nuevos puntos
         if (formData.puntosSeleccionados.length > 0) {
           const asignaciones = formData.puntosSeleccionados.map(puntoId => ({
             user_id: editingUser.id,
@@ -145,7 +278,6 @@ export default function Usuarios() {
 
         alert('Usuario actualizado exitosamente');
       } else {
-        // Crear nuevo usuario
         const { data: newUser, error: profileError } = await (supabase as any)
           .from('profiles')
           .insert({
@@ -153,7 +285,8 @@ export default function Usuarios() {
             codigo_usuario: formData.codigo_usuario,
             rol: formData.rol,
             activo: true,
-            password: formData.password
+            password: formData.password,
+            permisos: formData.permisos
           })
           .select()
           .single();
@@ -161,7 +294,6 @@ export default function Usuarios() {
         if (profileError) throw profileError;
         if (!newUser) throw new Error('No se pudo crear el usuario');
 
-        // Asignar puntos de venta
         if (formData.puntosSeleccionados.length > 0) {
           const asignaciones = formData.puntosSeleccionados.map(puntoId => ({
             user_id: newUser.id,
@@ -178,15 +310,16 @@ export default function Usuarios() {
         alert('Usuario creado exitosamente');
       }
 
-      // Limpiar y recargar
       setShowModal(false);
       setEditingUser(null);
+      setShowPermisosSection(false);
       setFormData({
         nombre: '',
         codigo_usuario: '',
         password: '',
         rol: 'vendedor',
-        puntosSeleccionados: []
+        puntosSeleccionados: [],
+        permisos: getDefaultPermissions('vendedor')
       });
       
       loadData();
@@ -239,14 +372,38 @@ export default function Usuarios() {
 
   const openNewModal = () => {
     setEditingUser(null);
+    setShowPermisosSection(false);
     setFormData({
       nombre: '',
       codigo_usuario: '',
       password: '',
       rol: 'vendedor',
-      puntosSeleccionados: []
+      puntosSeleccionados: [],
+      permisos: getDefaultPermissions('vendedor')
     });
     setShowModal(true);
+  };
+
+  const ventanasLabels: { [key: string]: string } = {
+    dashboard: 'Dashboard',
+    ventas: 'Ventas',
+    inventario: 'Inventario',
+    compras: 'Compras',
+    reportes: 'Reportes',
+    productos: 'Productos',
+    traslados: 'Traslados',
+    puntos: 'Puntos de Venta',
+    usuarios: 'Usuarios'
+  };
+
+  const dashboardLabels: { [key: string]: string } = {
+    ver_ventas_hoy: 'Ver Ventas Hoy',
+    ver_ventas_mes: 'Ver Ventas del Mes',
+    ver_ganancia_mes: 'Ver Ganancia del Mes',
+    ver_stock_bajo: 'Ver Stock Bajo',
+    ver_productos_vendidos: 'Ver Productos Vendidos',
+    ver_producto_mas_vendido: 'Ver Producto Más Vendido',
+    ver_grafico_ventas: 'Ver Gráfico de Ventas'
   };
 
   return (
@@ -327,8 +484,8 @@ export default function Usuarios() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-screen overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-2xl font-bold text-gray-900">
                 {editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}
@@ -380,7 +537,7 @@ export default function Usuarios() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Rol</label>
                 <select
                   value={formData.rol}
-                  onChange={(e) => setFormData({ ...formData, rol: e.target.value as any })}
+                  onChange={(e) => handleRolChange(e.target.value as any)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 >
                   <option value="vendedor">Vendedor</option>
@@ -404,6 +561,59 @@ export default function Usuarios() {
                     </label>
                   ))}
                 </div>
+              </div>
+
+              {/* Sección de Permisos Personalizados */}
+              <div className="border-t pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPermisosSection(!showPermisosSection)}
+                  className="flex items-center justify-between w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Shield className="w-5 h-5 text-teal-600" />
+                    <span className="font-medium text-gray-900">Permisos Personalizados</span>
+                  </div>
+                  {showPermisosSection ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+
+                {showPermisosSection && (
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Ventanas del Sistema</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.keys(formData.permisos.ventanas).map((ventana) => (
+                          <label key={ventana} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.permisos.ventanas[ventana as keyof UserPermissions['ventanas']]}
+                              onChange={() => toggleVentanaPermiso(ventana as keyof UserPermissions['ventanas'])}
+                              className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                            />
+                            <span className="text-sm text-gray-700">{ventanasLabels[ventana]}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Elementos del Dashboard</h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        {Object.keys(formData.permisos.dashboard).map((elemento) => (
+                          <label key={elemento} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.permisos.dashboard[elemento as keyof UserPermissions['dashboard']]}
+                              onChange={() => toggleDashboardPermiso(elemento as keyof UserPermissions['dashboard'])}
+                              className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                            />
+                            <span className="text-sm text-gray-700">{dashboardLabels[elemento]}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex space-x-3 mt-6">

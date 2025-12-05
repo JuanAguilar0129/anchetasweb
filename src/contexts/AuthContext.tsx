@@ -11,6 +11,30 @@ interface Profile {
   created_at: string;
   updated_at: string;
   password?: string;
+  permisos?: UserPermissions;
+}
+
+interface UserPermissions {
+  ventanas: {
+    dashboard: boolean;
+    ventas: boolean;
+    inventario: boolean;
+    compras: boolean;
+    reportes: boolean;
+    productos: boolean;
+    traslados: boolean;
+    puntos: boolean;
+    usuarios: boolean;
+  };
+  dashboard: {
+    ver_ventas_hoy: boolean;
+    ver_ventas_mes: boolean;
+    ver_ganancia_mes: boolean;
+    ver_stock_bajo: boolean;
+    ver_productos_vendidos: boolean;
+    ver_producto_mas_vendido: boolean;
+    ver_grafico_ventas: boolean;
+  };
 }
 
 interface PuntoVenta {
@@ -33,9 +57,85 @@ interface AuthContextType {
   isAdminPunto: boolean;
   isVendedor: boolean;
   refreshProfile: () => Promise<void>;
+  hasPermission: (ventana: keyof UserPermissions['ventanas']) => boolean;
+  hasDashboardPermission: (elemento: keyof UserPermissions['dashboard']) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Permisos por defecto según el rol
+const getDefaultPermissions = (rol: UserRole): UserPermissions => {
+  if (rol === 'admin_general') {
+    return {
+      ventanas: {
+        dashboard: true,
+        ventas: true,
+        inventario: true,
+        compras: true,
+        reportes: true,
+        productos: true,
+        traslados: true,
+        puntos: true,
+        usuarios: true,
+      },
+      dashboard: {
+        ver_ventas_hoy: true,
+        ver_ventas_mes: true,
+        ver_ganancia_mes: true,
+        ver_stock_bajo: true,
+        ver_productos_vendidos: true,
+        ver_producto_mas_vendido: true,
+        ver_grafico_ventas: true,
+      }
+    };
+  } else if (rol === 'admin_punto') {
+    return {
+      ventanas: {
+        dashboard: true,
+        ventas: true,
+        inventario: true,
+        compras: true,
+        reportes: true,
+        productos: true,
+        traslados: true,
+        puntos: false,
+        usuarios: false,
+      },
+      dashboard: {
+        ver_ventas_hoy: true,
+        ver_ventas_mes: true,
+        ver_ganancia_mes: true,
+        ver_stock_bajo: true,
+        ver_productos_vendidos: true,
+        ver_producto_mas_vendido: true,
+        ver_grafico_ventas: true,
+      }
+    };
+  } else { // vendedor
+    return {
+      ventanas: {
+        dashboard: true,
+        ventas: true,
+        inventario: true,
+        compras: false,
+        reportes: false,
+        productos: false,
+        traslados: false,
+        puntos: false,
+        usuarios: false,
+      },
+      dashboard: {
+        ver_ventas_hoy: true,
+        ver_ventas_mes: true,
+        ver_ganancia_mes: false,
+        ver_stock_bajo: true,
+        ver_productos_vendidos: true,
+        ver_producto_mas_vendido: true,
+        ver_grafico_ventas: true,
+      }
+    };
+  }
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Profile | null>(null);
@@ -91,6 +191,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userWithoutPassword = { ...typedProfile };
         delete userWithoutPassword.password;
         
+        // Asegurar que tenga permisos
+        if (!userWithoutPassword.permisos) {
+          userWithoutPassword.permisos = getDefaultPermissions(typedProfile.rol);
+        }
+        
         setUser(userWithoutPassword);
         setProfile(userWithoutPassword);
         
@@ -120,6 +225,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const typedProfile = profileData as Profile;
             const userWithoutPassword = { ...typedProfile };
             delete userWithoutPassword.password;
+            
+            // Asegurar que tenga permisos
+            if (!userWithoutPassword.permisos) {
+              userWithoutPassword.permisos = getDefaultPermissions(typedProfile.rol);
+            }
             
             setUser(userWithoutPassword);
             setProfile(userWithoutPassword);
@@ -176,6 +286,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userWithoutPassword = { ...typedUser };
       delete userWithoutPassword.password;
 
+      // Asegurar que tenga permisos
+      if (!userWithoutPassword.permisos) {
+        userWithoutPassword.permisos = getDefaultPermissions(typedUser.rol);
+      }
+
       setUser(userWithoutPassword);
       setProfile(userWithoutPassword);
       
@@ -198,6 +313,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('anchetas_user');
   };
 
+  const hasPermission = (ventana: keyof UserPermissions['ventanas']): boolean => {
+    if (!profile?.permisos) return false;
+    return profile.permisos.ventanas[ventana] || false;
+  };
+
+  const hasDashboardPermission = (elemento: keyof UserPermissions['dashboard']): boolean => {
+    if (!profile?.permisos) return false;
+    return profile.permisos.dashboard[elemento] || false;
+  };
+
   const isAdmin = profile?.rol === 'admin_general';
   const isAdminPunto = profile?.rol === 'admin_punto';
   const isVendedor = profile?.rol === 'vendedor';
@@ -214,7 +339,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin,
         isAdminPunto,
         isVendedor,
-        refreshProfile
+        refreshProfile,
+        hasPermission,
+        hasDashboardPermission
       }}
     >
       {children}

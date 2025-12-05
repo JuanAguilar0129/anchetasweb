@@ -18,21 +18,21 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
-  const { profile } = useAuth();
+  const { profile, hasPermission } = useAuth();
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin_general', 'admin_punto', 'vendedor'] },
-    { id: 'ventas', label: 'Ventas', icon: ShoppingCart, roles: ['admin_general', 'admin_punto', 'vendedor'] },
-    { id: 'inventario', label: 'Inventario', icon: Package, roles: ['admin_general', 'admin_punto', 'vendedor'] },
-    { id: 'compras', label: 'Compras', icon: ShoppingBag, roles: ['admin_general', 'admin_punto'] },
-    { id: 'reportes', label: 'Reportes', icon: FileText, roles: ['admin_general', 'admin_punto'] },
-    { id: 'productos', label: 'Productos', icon: Settings, roles: ['admin_general', 'admin_punto'] },
-    { id: 'traslados', label: 'Traslados', icon: ArrowRightLeft, roles: ['admin_general', 'admin_punto'] },
-    { id: 'puntos', label: 'Puntos de Venta', icon: MapPin, roles: ['admin_general'] },
-    { id: 'usuarios', label: 'Usuarios', icon: Users, roles: ['admin_general'] },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: 'dashboard' as const },
+    { id: 'ventas', label: 'Ventas', icon: ShoppingCart, permission: 'ventas' as const },
+    { id: 'inventario', label: 'Inventario', icon: Package, permission: 'inventario' as const },
+    { id: 'compras', label: 'Compras', icon: ShoppingBag, permission: 'compras' as const },
+    { id: 'reportes', label: 'Reportes', icon: FileText, permission: 'reportes' as const },
+    { id: 'productos', label: 'Productos', icon: Settings, permission: 'productos' as const },
+    { id: 'traslados', label: 'Traslados', icon: ArrowRightLeft, permission: 'traslados' as const },
+    { id: 'puntos', label: 'Puntos de Venta', icon: MapPin, permission: 'puntos' as const },
+    { id: 'usuarios', label: 'Usuarios', icon: Users, permission: 'usuarios' as const },
   ];
 
-  const availableMenuItems = menuItems.filter(item => profile && item.roles.includes(profile.rol));
+  const availableMenuItems = menuItems.filter(item => hasPermission(item.permission));
 
   return (
     <aside className="h-full overflow-y-auto bg-white border-r border-gray-200">
@@ -40,7 +40,7 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
         <div className="mb-4 px-2">
           <div className="text-sm text-gray-500">Hola,</div>
           <div className="font-semibold">{profile?.nombre}</div>
-<div className="text-xs text-gray-400">{profile?.codigo_usuario}</div>
+          <div className="text-xs text-gray-400">{profile?.codigo_usuario}</div>
         </div>
 
         <nav className="space-y-2">

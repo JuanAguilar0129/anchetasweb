@@ -8,6 +8,29 @@ export type Json =
 
 export type UserRole = 'admin_general' | 'admin_punto' | 'vendedor';
 
+export interface UserPermissions {
+  ventanas: {
+    dashboard: boolean;
+    ventas: boolean;
+    inventario: boolean;
+    compras: boolean;
+    reportes: boolean;
+    productos: boolean;
+    traslados: boolean;
+    puntos: boolean;
+    usuarios: boolean;
+  };
+  dashboard: {
+    ver_ventas_hoy: boolean;
+    ver_ventas_mes: boolean;
+    ver_ganancia_mes: boolean;
+    ver_stock_bajo: boolean;
+    ver_productos_vendidos: boolean;
+    ver_producto_mas_vendido: boolean;
+    ver_grafico_ventas: boolean;
+  };
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -21,6 +44,7 @@ export interface Database {
           created_at: string;
           updated_at: string;
           password?: string;
+          permisos?: UserPermissions | null;
         };
         Insert: {
           id?: string;
@@ -31,6 +55,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
           password?: string;
+          permisos?: UserPermissions | null;
         };
         Update: {
           id?: string;
@@ -40,6 +65,7 @@ export interface Database {
           activo?: boolean;
           updated_at?: string;
           password?: string;
+          permisos?: UserPermissions | null;
         };
       };
       puntos_venta: {
@@ -92,6 +118,7 @@ export interface Database {
           nombre: string;
           descripcion: string;
           precio_venta: number;
+          costo: number;
           imagen_url: string;
           activo: boolean;
           created_at: string;
@@ -102,6 +129,7 @@ export interface Database {
           nombre: string;
           descripcion?: string;
           precio_venta?: number;
+          costo?: number;
           imagen_url?: string;
           activo?: boolean;
           created_at?: string;
@@ -112,6 +140,7 @@ export interface Database {
           nombre?: string;
           descripcion?: string;
           precio_venta?: number;
+          costo?: number;
           imagen_url?: string;
           activo?: boolean;
           updated_at?: string;
