@@ -12,12 +12,12 @@ export interface UserPermissions {
   ventanas: {
     dashboard: boolean;
     ventas: boolean;
-    devoluciones: boolean;
     inventario: boolean;
     compras: boolean;
     reportes: boolean;
     productos: boolean;
     traslados: boolean;
+    cargos_descargos: boolean;
     puntos: boolean;
     usuarios: boolean;
   };
