@@ -130,11 +130,18 @@ export default function Ventas() {
     try {
       const total = ventaItems.reduce((sum, item) => sum + (Number(item.producto.precio_venta) * item.cantidad), 0);
 
+      // Generar número de factura secuencial
+      const { data: numeroData } = await (supabase as any)
+        .rpc('generar_numero_factura', { p_punto_id: selectedPunto });
+
+      const numeroFactura = numeroData;
+
       const { data: ventaData, error: ventaError } = await (supabase as any)
         .from('ventas')
         .insert([{
           punto_id: selectedPunto,
           vendedor_id: user.id,
+          numero_factura: numeroFactura,
           total
         }])
         .select()
@@ -360,7 +367,7 @@ export default function Ventas() {
                   {ventaItems.map(item => {
                     const inventarioItem = inventario.find(i => i.producto_id === item.producto.id);
                     const maxCantidad = inventarioItem?.cantidad || 0;
-                    const costo = Number(item.producto.precio_costo ?? item.producto.costo_unitario ?? item.producto.costo ?? 0);
+                    // const costo = Number(item.producto.precio_costo ?? item.producto.costo_unitario ?? item.producto.costo ?? 0);
 
                     return (
                       <div key={item.producto.id} className="border border-gray-200 rounded-lg p-3">
