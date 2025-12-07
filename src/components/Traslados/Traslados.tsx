@@ -83,7 +83,7 @@ export default function Traslados() {
       // Filtrar según permisos
       const puntosDisponibles = isAdmin 
         ? data 
-        : data?.filter(p => puntosAsignados.some((pa: any) => pa.id === p.id));
+        : (data as any)?.filter((p: any) => puntosAsignados.some((pa: any) => pa.id === p.id));
       
       setPuntos(puntosDisponibles || []);
     } catch (error) {
