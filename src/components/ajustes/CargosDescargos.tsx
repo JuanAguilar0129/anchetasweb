@@ -32,7 +32,7 @@ interface Ajuste {
 export default function CargosDescargos() {
   const { user, puntosAsignados } = useAuth();
   const [inventario, setInventario] = useState<Inventario[]>([]);
-  const [ajustes, setAjustes] = useState<any[]>([]);
+  const [ajustes, setAjustes] = useState<Ajuste[]>([]);
   const [selectedPunto, setSelectedPunto] = useState<string>(puntosAsignados[0]?.id || '');
   const [selectedProducto, setSelectedProducto] = useState<string>('');
   const [tipo, setTipo] = useState<'cargo' | 'descargo'>('descargo');

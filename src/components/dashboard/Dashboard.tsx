@@ -3,6 +3,20 @@ import { TrendingUp, DollarSign, Package, ShoppingCart, AlertTriangle } from 'lu
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
+interface Venta {
+  id: string;
+  total: number;
+  created_at: string;
+  [key: string]: any;
+}
+
+interface VentaDetalle {
+  cantidad: number;
+  precio: number;
+  costo?: number;
+  [key: string]: any;
+}
+
 interface Stats {
   ventasHoy: number;
   ventasMes: number;
@@ -145,7 +159,7 @@ export default function Dashboard() {
       const masVendido = Object.values(productoVentas).sort((a, b) => b.cantidad - a.cantidad)[0] || null;
 
       // ===== GANANCIA DEL MES =====
-      const gananciaMes = detallesMes?.reduce((sum: number, detalle: any) => {
+      const gananciaMes = detallesMes?.reduce((sum: number, detalle: VentaDetalle) => {
         const precioVenta = detalle.precio_unitario || 0;
         const costo = detalle.productos?.costo || 0;
         const ganancia = (precioVenta - costo) * detalle.cantidad;
@@ -165,7 +179,7 @@ export default function Dashboard() {
           return ventaDateStr === fechaStr;
         }) || [];
         
-        const total = ventasDia.reduce((sum: number, v: any) => sum + v.total, 0);
+        const total = ventasDia.reduce((sum: number, v: Venta) => sum + v.total, 0);
         
         ventasPorDia.push({
           fecha: fecha.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }),
@@ -175,10 +189,10 @@ export default function Dashboard() {
       }
 
       // ===== CALCULAR TOTALES =====
-      const totalVentasHoy = ventasHoy?.reduce((sum: number, v: any) => sum + v.total, 0) || 0;
-      const totalVentasMes = ventasMes?.reduce((sum: number, v: any) => sum + v.total, 0) || 0;
-      const totalProductosHoy = detallesHoy?.reduce((sum: number, d: any) => sum + d.cantidad, 0) || 0;
-      const totalProductosMes = detallesMes?.reduce((sum: number, d: any) => sum + d.cantidad, 0) || 0;
+      const totalVentasHoy = ventasHoy?.reduce((sum: number, v: Venta) => sum + v.total, 0) || 0;
+      const totalVentasMes = ventasMes?.reduce((sum: number, v: Venta) => sum + v.total, 0) || 0;
+      const totalProductosHoy = detallesHoy?.reduce((sum: number, d: VentaDetalle) => sum + d.cantidad, 0) || 0;
+      const totalProductosMes = detallesMes?.reduce((sum: number, d: VentaDetalle) => sum + d.cantidad, 0) || 0;
 
       console.log('📊 Totales calculados:', {
         ventasHoy: totalVentasHoy,

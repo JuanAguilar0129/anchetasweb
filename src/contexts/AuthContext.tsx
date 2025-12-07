@@ -23,6 +23,7 @@ interface UserPermissions {
     reportes: boolean;
     productos: boolean;
     traslados: boolean;
+    cargos_descargos: boolean;
     puntos: boolean;
     usuarios: boolean;
   };
@@ -75,6 +76,7 @@ const getDefaultPermissions = (rol: UserRole): UserPermissions => {
         reportes: true,
         productos: true,
         traslados: true,
+        cargos_descargos: true,
         puntos: true,
         usuarios: true,
       },
@@ -98,6 +100,7 @@ const getDefaultPermissions = (rol: UserRole): UserPermissions => {
         reportes: true,
         productos: true,
         traslados: true,
+        cargos_descargos: true,
         puntos: false,
         usuarios: false,
       },
@@ -121,6 +124,7 @@ const getDefaultPermissions = (rol: UserRole): UserPermissions => {
         reportes: false,
         productos: false,
         traslados: false,
+        cargos_descargos: false,
         puntos: false,
         usuarios: false,
       },

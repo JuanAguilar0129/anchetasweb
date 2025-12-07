@@ -17,6 +17,7 @@ export interface UserPermissions {
     reportes: boolean;
     productos: boolean;
     traslados: boolean;
+    cargos_descargos: boolean;
     puntos: boolean;
     usuarios: boolean;
   };

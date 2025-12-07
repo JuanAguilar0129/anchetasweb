@@ -12,6 +12,7 @@ import Compras from './components/compras/Compras';
 import Usuarios from './components/usuarios/Usuarios';
 import Reportes from './components/reportes/Reportes';
 import Traslados from './components/Traslados/Traslados';
+import CargosDescargos from './components/ajustes/CargosDescargos';
 
 function MainApp() {
   const { user, loading } = useAuth();
@@ -41,6 +42,7 @@ function MainApp() {
       case 'compras': return <Compras />;
       case 'reportes': return <Reportes />;
       case 'traslados': return <Traslados />;
+      case 'cargos_descargos': return <CargosDescargos />;
       case 'usuarios': return <Usuarios />;
       default: return <Dashboard />;
     }
