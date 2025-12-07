@@ -6,12 +6,12 @@ interface UserPermissions {
   ventanas: {
     dashboard: boolean;
     ventas: boolean;
+    devoluciones: boolean;
     inventario: boolean;
     compras: boolean;
     reportes: boolean;
     productos: boolean;
     traslados: boolean;
-    cargos_descargos: boolean;
     puntos: boolean;
     usuarios: boolean;
   };
@@ -57,12 +57,12 @@ const getDefaultPermissions = (rol: string): UserPermissions => {
       ventanas: {
         dashboard: true,
         ventas: true,
+        devoluciones: true,
         inventario: true,
         compras: true,
         reportes: true,
         productos: true,
         traslados: true,
-        cargos_descargos: true,
         puntos: true,
         usuarios: true,
       },
@@ -81,12 +81,12 @@ const getDefaultPermissions = (rol: string): UserPermissions => {
       ventanas: {
         dashboard: true,
         ventas: true,
+        devoluciones: true,
         inventario: true,
         compras: true,
         reportes: true,
         productos: true,
         traslados: true,
-        cargos_descargos: true,
         puntos: false,
         usuarios: false,
       },
@@ -105,12 +105,12 @@ const getDefaultPermissions = (rol: string): UserPermissions => {
       ventanas: {
         dashboard: true,
         ventas: true,
+        devoluciones: true,
         inventario: true,
         compras: false,
         reportes: false,
         productos: false,
         traslados: false,
-        cargos_descargos: false,
         puntos: false,
         usuarios: false,
       },
@@ -391,12 +391,12 @@ export default function Usuarios() {
   const ventanasLabels: { [key: string]: string } = {
     dashboard: 'Dashboard',
     ventas: 'Ventas',
+    devoluciones: 'Devoluciones',
     inventario: 'Inventario',
     compras: 'Compras',
     reportes: 'Reportes',
     productos: 'Productos',
     traslados: 'Traslados',
-    cargos_descargos: 'Ajustes de Inventario',
     puntos: 'Puntos de Venta',
     usuarios: 'Usuarios'
   };

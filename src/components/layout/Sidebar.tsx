@@ -8,7 +8,7 @@ import {
   Settings,
   FileText,
   ArrowRightLeft,
-  RefreshCcw
+  RotateCcw
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -23,12 +23,12 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: 'dashboard' as const },
     { id: 'ventas', label: 'Ventas', icon: ShoppingCart, permission: 'ventas' as const },
+    { id: 'devoluciones', label: 'Devoluciones', icon: RotateCcw, permission: 'devoluciones' as const },
     { id: 'inventario', label: 'Inventario', icon: Package, permission: 'inventario' as const },
     { id: 'compras', label: 'Compras', icon: ShoppingBag, permission: 'compras' as const },
     { id: 'reportes', label: 'Reportes', icon: FileText, permission: 'reportes' as const },
     { id: 'productos', label: 'Productos', icon: Settings, permission: 'productos' as const },
     { id: 'traslados', label: 'Traslados', icon: ArrowRightLeft, permission: 'traslados' as const },
-    { id: 'cargos_descargos', label: 'Ajustes de Inventario', icon: RefreshCcw, permission: 'cargos_descargos' as const },
     { id: 'puntos', label: 'Puntos de Venta', icon: MapPin, permission: 'puntos' as const },
     { id: 'usuarios', label: 'Usuarios', icon: Users, permission: 'usuarios' as const },
   ];
