@@ -587,7 +587,9 @@ export default function Usuarios() {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 mb-3">Ventanas del Sistema</h4>
                       <div className="grid grid-cols-2 gap-2">
-                        {Object.keys(formData.permisos.ventanas).map((ventana) => (
+                        {Object.keys(formData.permisos.ventanas)
+                          .filter(ventana => ventanasLabels[ventana]) // Solo mostrar si tiene label definido
+                          .map((ventana) => (
                           <label key={ventana} className="flex items-center space-x-2 cursor-pointer">
                             <input
                               type="checkbox"
