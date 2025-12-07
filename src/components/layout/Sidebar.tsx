@@ -33,7 +33,15 @@ export default function Sidebar({ activeView, onViewChange }: SidebarProps) {
     { id: 'usuarios', label: 'Usuarios', icon: Users, permission: 'usuarios' as const },
   ];
 
-  const availableMenuItems = menuItems.filter(item => hasPermission(item.permission));
+  const availableMenuItems = menuItems.filter(item => {
+    try {
+      return hasPermission(item.permission);
+    } catch (error) {
+      // Si hay error al verificar permiso, no mostrar el item
+      console.error(`Error checking permission for ${item.permission}:`, error);
+      return false;
+    }
+  });
 
   return (
     <aside className="h-full overflow-y-auto bg-white border-r border-gray-200">

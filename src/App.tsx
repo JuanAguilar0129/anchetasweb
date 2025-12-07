@@ -11,8 +11,10 @@ import Ventas from './components/ventas/Ventas';
 import Compras from './components/compras/Compras';
 import Usuarios from './components/usuarios/Usuarios';
 import Reportes from './components/reportes/Reportes';
-import Traslados from './components/Traslados/Traslados';
-import Devoluciones from './components/devoluciones/Devoluciones.tsx';
+
+// Importaciones opcionales - comentar si no existen
+// import Traslados from './components/traslados/Traslados';
+// import Devoluciones from './components/devoluciones/Devoluciones';
 
 function MainApp() {
   const { user, loading } = useAuth();
@@ -39,50 +41,61 @@ function MainApp() {
       case 'productos': return <Productos />;
       case 'inventario': return <Inventario />;
       case 'ventas': return <Ventas />;
-      case 'devoluciones': return <Devoluciones />;
       case 'compras': return <Compras />;
       case 'reportes': return <Reportes />;
-      case 'traslados': return <Traslados />;
       case 'usuarios': return <Usuarios />;
+      
+      // Descomentar cuando existan estos componentes
+      // case 'traslados': return <Traslados />;
+      // case 'devoluciones': return <Devoluciones />;
+      
+      // Temporales - hasta que existan los componentes
+      case 'traslados': 
+        return <div className="p-6 text-center"><p className="text-gray-600">Módulo de Traslados en desarrollo</p></div>;
+      case 'devoluciones': 
+        return <div className="p-6 text-center"><p className="text-gray-600">Módulo de Devoluciones en desarrollo</p></div>;
+      
       default: return <Dashboard />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onMenuToggle={() => setSidebarOpen(v => !v)} />
-
-      <div className="lg:flex">
-        {/* Sidebar visible on large screens */}
-        <div className="hidden lg:block lg:w-64">
-          <Sidebar activeView={activeView} onViewChange={setActiveView} />
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      
+      <div className="flex h-[calc(100vh-4rem)]">
+        <div className={`
+          fixed inset-y-0 left-0 top-16 z-30 w-64 transform transition-transform duration-300 ease-in-out
+          lg:relative lg:top-0 lg:translate-x-0
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <Sidebar activeView={activeView} onViewChange={(view) => {
+            setActiveView(view);
+            setSidebarOpen(false);
+          }} />
         </div>
 
-        {/* Mobile slide-over sidebar */}
         {sidebarOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
-            <div className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-lg">
-              <Sidebar activeView={activeView} onViewChange={(v) => { setActiveView(v); setSidebarOpen(false); }} />
-            </div>
-          </div>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden top-16"
+            onClick={() => setSidebarOpen(false)}
+          />
         )}
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto">
-            {renderView()}
-          </div>
+        <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+          {renderView()}
         </main>
       </div>
     </div>
   );
 }
 
-export default function App() {
-  // AuthProvider envuelve MainApp para que useAuth() funcione correctamente
+function App() {
   return (
     <AuthProvider>
       <MainApp />
     </AuthProvider>
   );
 }
+
+export default App;
